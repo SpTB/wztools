@@ -1,0 +1,2 @@
+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
+credentials::set_github_pat("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")
