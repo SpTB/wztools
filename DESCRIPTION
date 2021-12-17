@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "traumatictiltexperience@gmail.com",
            comment = c(ORCID = "0000-0001-6078-1724"))
-Description: Provides a set of helper functions for data preprocessing, analysis and visualisation.
+Description: Provides a set of helper functions for data preprocessing, analysis and visualisation. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
