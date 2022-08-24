@@ -11,9 +11,6 @@ setGGoptions(base = 10, line_wid = 1)
 
 \item{line_wid}{line width}
 }
-\value{
-
-}
 \description{
 Set GG options
 }

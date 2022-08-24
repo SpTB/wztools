@@ -1,5 +1,5 @@
 Package: wztools
-Title: What the Package Does (One Line, Title Case)
+Title: Convenient functions for analysis and simulation
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Wojciech",
@@ -12,8 +12,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Imports: 
-    ggplot2
+    ggplot2, stats, scales
 URL: https://github.com/SpTB/wztools
 BugReports: https://github.com/SpTB/wztools/issues

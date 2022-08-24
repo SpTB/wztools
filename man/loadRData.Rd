@@ -9,9 +9,6 @@ loadRData(fileName)
 \arguments{
 \item{fileName}{Rdata object}
 }
-\value{
-
-}
 \description{
-Loads loads an RData file and returns it
+Loads loads an RData file and returns it (can assign it to a new variable)
 }
