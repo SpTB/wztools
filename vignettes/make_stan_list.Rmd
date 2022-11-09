@@ -1,0 +1,78 @@
+---
+title: "make_stan_list"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{make_stan_list}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(wztools)
+library(magrittr)
+```
+
+For this vignette, we will use 2 attached synthetic datasets. First, for a single subject:
+
+```{r}
+single_subj_sim
+```
+
+This is a simulated dataset of accuracies and reaction times in two difficulty conditions (see `?single_subj_sim`). We will assume that conditions are blocked. We can use the `make_stan_list` function to transform the output to *stan*-appropriate format:
+
+```{r}
+var_names = c('choice', 'rt') #specifies which variables we want to summarise in multi-dimentional arrays
+grouping_vars = c('cond', 'trial') #specifies by which dimentions will the output be grouped
+grouping_vars_stan_names=c('numConds','numTrials')
+stan_list = make_stan_list(dat = single_subj_sim,
+                           var_names = var_names,
+                           grouping_vars = grouping_vars,
+                           grouping_vars_stan_names = grouping_vars_stan_names,
+                           hierarchical = F # non-hierarchical setting is for a single subject
+                           )
+stan_list
+```
+The `stan_list` elements *rt* and *choice* are arrays, with *condition* and *trial* being the first and second dimention, respecively.
+
+When using evidence accumulation to model choices, we might need to additionally add the minimal rt (rt bound), which we can do using the *ssm_prepro* argument:
+
+```{r}
+stan_list = make_stan_list(dat = single_subj_sim,
+                           var_names = var_names,
+                           grouping_vars = grouping_vars,
+                           grouping_vars_stan_names = grouping_vars_stan_names,
+                           hierarchical = F, # non-hierarchical setting is for a single subject
+                           ssm_prepro=T)
+stan_list
+```
+We can do this also for multisubject data:
+```{r}
+#pre-generated 10-subject dataset
+sim
+```
+
+We just need to add subject identifier (`subjID`) as another dimension to our arrays. We can do this by adding `subjID` as the first grouping variable, and changing the `hierarchical` argument to `TRUE`:
+
+```{r}
+grouping_vars = c('subjID', 'cond', 'trial') 
+grouping_vars_stan_names=c('numSubj', 'numConds','numTrials')
+
+stan_list = make_stan_list(dat = sim,
+                           var_names = var_names,
+                           grouping_vars = grouping_vars,
+                           grouping_vars_stan_names = grouping_vars_stan_names,
+                           hierarchical = T, # non-hierarchical setting is for a single subject
+                           ssm_prepro=T)
+dim(stan_list$choice)
+```
+Now `choice` and `rt` are 3-dimentional arrays, with `subjID` being the first dimension. Such multi-dimensional arrays are a convenient way of inputting data into *Stan*.
+
+
+

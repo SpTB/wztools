@@ -17,3 +17,9 @@ Imports:
     ggplot2, stats, scales
 URL: https://github.com/SpTB/wztools
 BugReports: https://github.com/SpTB/wztools/issues
+Depends: 
+    R (>= 2.10)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -13,6 +13,25 @@ setOptions  <- function(...) {
   options(scipen=999)
 }
 
+#' Sources all the code within given folder + file name pattern
+#'
+#' @param path character vector specifying the path to the folder with to-be-sourced code
+#' @param pattern character vector specifying the file name pattern
+#'
+#' @return 0
+#' @export
+#'
+#' @examples
+sourceAll <- function(path, pattern='_func') {
+  fi = list.files(path =path,
+                  pattern=pattern,
+                  full.names = T )
+
+  for (i in fi) {
+    source(i)
+  }
+}
+
 #' Variable name to string conversion
 #'
 #' @param variable Variable name
