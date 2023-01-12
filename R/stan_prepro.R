@@ -5,6 +5,15 @@ compile_model <- function(model_file) {
   return (model_file)
 }
 
+#' Add ranges to stan list
+#'
+#' @param stan_list
+#' @param ranges
+#'
+#' @return
+#' @export
+#'
+#' @examples
 add_ranges <- function(stan_list,ranges) {
   for (i in 1:length(ranges)) {
     if ('range' %in% names(ranges[[i]]))  {
@@ -15,6 +24,16 @@ add_ranges <- function(stan_list,ranges) {
   return (stan_list)
 }
 
+#' add fixed pars to stan list
+#'
+#' @param stan_list
+#' @param fixed_pars
+#' @param model_struct_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
 add_fixed_pars <-function(stan_list, fixed_pars, model_struct_list) {
   for (par in fixed_pars) {
     stan_list[[par]] = model_struct_list[[par]]$fixed_value
@@ -22,6 +41,15 @@ add_fixed_pars <-function(stan_list, fixed_pars, model_struct_list) {
   return (stan_list)
 }
 
+#' Add gamma pars from model_struct_list to stan_list
+#'
+#' @param stan_list
+#' @param model_struct_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
 add_gammas <- function(stan_list, model_struct_list) {
   for (i in 1:length(model_struct_list)) {
     stan_list[[paste0('gamA_',names(model_struct_list)[i])]]=model_struct_list[[i]]$gamma_parsA

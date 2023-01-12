@@ -2,6 +2,9 @@
 
 export(add_cov_stats_ind)
 export(add_cov_stats_mu)
+export(add_fixed_pars)
+export(add_gammas)
+export(add_ranges)
 export(beta_mean)
 export(beta_sd)
 export(calc_loo)

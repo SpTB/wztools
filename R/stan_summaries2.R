@@ -1,9 +1,26 @@
+#' Extract group-level mean parameters (mus) from cmdstanr model summary object
+#'
+#' @param stan_fit_summary
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_mus2 <- function(stan_fit_summary) {
   mus = stan_fit_summary |>
     filter(str_detect(variable, 'mu') & !str_detect(variable, 'raw'))
   return(mus)
 }
 
+#' Extract individual parameters from cmdstanr model summary object
+#'
+#' @param stan_fit_summary
+#' @param ind_pars
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_inds2<-function(stan_fit_summary, ind_pars=NULL) {
   #extract a list of individual parameters followed by '[x]'
   search_vect = map_chr(ind_pars, ~paste0(.x, '\\['))

@@ -1,3 +1,11 @@
+#' Softplus transformation from (-Inf +Inf) to (0, +Inf)
+#'
+#' @param x
+#'
+#' @return
+#' @export
+#'
+#' @examples
 softplus <-function(x) {
   return(log(1+exp(x)))
 }
