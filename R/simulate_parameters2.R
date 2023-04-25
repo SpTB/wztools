@@ -71,6 +71,7 @@ sim_mus2 <-function(model_struct_list, prior_dist='gamma', nsim, seed=NULL) {
   return (out)
 }
 
+#### 4. RECOVERY ##############
 
 #' Simulates raw group parameter values (in beta space) from alpha/beta dataframes
 #' @description Parameter recovery: for drawing group-level parameter values
@@ -134,7 +135,7 @@ sim_raw_inds_from_ab <-function(mus_df, out_pars = 'beta', nsim, nsubj, starting
   alpha_df = mus_df %>% select(starts_with(alpha_prefix))
   beta_df = mus_df %>% select(starts_with(beta_prefix))
 
-  par_names = substr(names(alpha_df),nchar(alpha_prefix)+1, nchar(names(alpha_df))-4)
+  par_names = substr(names(alpha_df),nchar(alpha_prefix)+1, nchar(names(alpha_df)))
 
   for (sim in 1:nsim) { #for each simulation
     for (par in 1:ncol(alpha_df)){ #for each parameter
