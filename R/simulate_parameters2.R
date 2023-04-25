@@ -72,3 +72,79 @@ sim_mus2 <-function(model_struct_list, prior_dist='gamma', nsim, seed=NULL) {
 }
 
 
+#' Simulates raw group parameter values (in beta space) from alpha/beta dataframes
+#' @description Parameter recovery: for drawing group-level parameter values
+#' @param settings_list has to contain $nsim field with number of simulations
+#' @param alpha_df N-by-p df, where p are the parameter names (in the form 'a_x_raw')
+#' @param beta_df same for beta values ('b_x_raw' colnames)
+#' @param out_pars output parametrization: 'beta' returns alpha & beta values; otherwise: mean + sd
+#' @param single_df output type: TRUE returns a single dataframe; FALSE a list of 2 elements
+#' @param seed
+#'
+#' @return
+#' @export
+#'
+#' @examples
+sim_raw_pars_from_ab <- function(settings_list, alpha_df, beta_df, out_pars = 'beta', single_df=T, seed=NULL) {
+  if (!is.null(seed)) set.seed(seed)
+  nsim=settings_list$nsim
+
+  as_samp = alpha_df[1:nsim,]
+  bs_samp = beta_df[1:nsim,]
+  for (col in 1:ncol(alpha_df)) {
+    samp = sample(1:nrow(alpha_df), nsim) #sample rows (crucial the sample is the same for both dfs!)
+    as_samp[,col] = alpha_df[samp,col]
+    bs_samp[,col] = beta_df[samp,col]
+  }
+  out = list()
+  if (out_pars == 'beta') {
+    out[[1]] = as_samp #alpha pars
+    out[[2]] = bs_samp #beta pars
+  } else {
+    out[[1]] = as_samp/(as_samp+b_samp) #beta mean
+    out[[2]] = sqrt((as_samp*bs_samp)/((as_samp+bs_samp)^2*(as_samp+bs_samp+1))) #beta sd
+  }
+  if (single_df){
+    out = bind_cols(out[[1]], out[[2]])
+    out$sim_num = 1:nrow(out)
+  }
+  return (out)
+}
+
+
+#' simulates raw individual parameter values (in beta space) from alpha/beta dataframes
+#'
+#' @param mus_df
+#' @param out_pars
+#' @param nsim
+#' @param nsubj
+#' @param starting_string string at the start of each column name. Defaults to '' (empty), but sometimes 'mu_' might work
+#' @param seed
+#'
+#' @return
+#' @export
+#'
+#' @examples
+sim_raw_inds_from_ab <-function(mus_df, out_pars = 'beta', nsim, nsubj, starting_string='',seed=NULL) {
+  if (!is.null(seed)) set.seed(seed)
+  #column starting prefixes:
+  alpha_prefix = paste0(starting_string, 'a_')
+  beta_prefix = paste0(starting_string, 'b_')
+
+  alpha_df = mus_df %>% select(starts_with(alpha_prefix))
+  beta_df = mus_df %>% select(starts_with(beta_prefix))
+
+  par_names = substr(names(alpha_df),nchar(alpha_prefix)+1, nchar(names(alpha_df))-4)
+
+  for (sim in 1:nsim) { #for each simulation
+    for (par in 1:ncol(alpha_df)){ #for each parameter
+      parx = rbeta(nsubj, pull(alpha_df[sim,par]), pull(beta_df[sim,par]))
+      if (par==1) simx = parx else simx = bind_cols(simx, parx)
+    }
+    names(simx) = par_names
+    simx$sim_num = sim
+    simx$subjID = 1:nsubj
+    if (sim==1) out=simx else out = bind_rows(out, simx)
+  }
+  return(out)
+}
