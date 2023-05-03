@@ -37,3 +37,66 @@ get_inds2<-function(stan_fit_summary, ind_pars=NULL) {
 
   return(inds)
 }
+
+## FOR WORKING WITH PRIOR SIMS
+
+#' Extracts simulated pars
+#'
+#' @param cmdstan_summary
+#' @param preds a list of predictor names
+#'
+#' @return
+#' @export
+#'
+#' @examples
+extract_preds <-function(cmdstan_summary, preds = c('d_pred', 'r_pred')) {
+  out = cmdstan_summary %>%
+    filter(str_detect(variable,paste(preds, collapse='|'))) %>% mutate(
+      trial = str_extract(variable, '\\b[^,]+$') %>% parse_number(),
+      game = str_extract(variable, '(?<=,)[^,]+(?=,)') %>% parse_number(),
+      subjID =gsub("^(.*?),.*", "\\1", variable) %>% parse_number()
+    ) %>% arrange(subjID, game, trial) %>%
+    mutate(rounded_pred = round(mean)) %>%
+    select(variable, mean, subjID, game, trial)
+  return (out)
+}
+
+
+#' Turns multiple variables from a cmdstan_summary df to separate columns using pivot_wider
+#'
+#' @param cmdstan_summary
+#'
+#' @return
+#' @export
+#'
+#' @examples
+widen_preds <- function(cmdstan_summary) {
+  out = cmdstan_summary %>%
+    mutate(var_type = sub("\\[\\b.*",'',variable)) %>%
+    select(-variable) %>%
+    pivot_wider(names_from = var_type, values_from = mean)
+}
+
+#' Extracts individual parameter values from the task skeleton back to a list
+#'
+#' @param dataframe task skeleton
+#' @param mu_list
+#' @param grouping_cols for individual parameters only subjID
+#'
+#' @return
+#' @export
+#'
+#' @examples
+pars_to_stan <- function(dataframe, mu_list ,grouping_cols = c('subjID')) {
+  par_names = paste0(substr(names(mu_list), 4, nchar(names(mu_list))), '_true')
+
+  #remove unncecessary cols
+  dataframe = dataframe %>%
+    select_if(names(.) %in% c(par_names, grouping_cols))
+
+  dataframe = dataframe %>% group_by(subjID) %>% summarise_all(max) %>% select_if(!names(.) %in% grouping_cols)
+  #remove the 'true' part of variable name
+  names(dataframe) = substr(names(dataframe), 1, nchar(names(dataframe))-5)
+
+  return(as.list(dataframe))
+}

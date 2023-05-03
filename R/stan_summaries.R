@@ -79,7 +79,7 @@ add_cov_stats_ind <- function(ind_fit, ind_pars, model_num) {
 #' @export
 #'
 #' @examples
-get_inds <- function(stan_fit_summary, ind_pars, model_num, param_list=NULL) {
+get_inds <- function(stan_fit_summary, ind_pars, model_num, param_list=NULL, many_models=F) {
   search_vect = NULL
   ind_par_names = names(ind_pars[[1]])
   #extract a list of individual parameters followed by '[x]'
@@ -96,10 +96,12 @@ get_inds <- function(stan_fit_summary, ind_pars, model_num, param_list=NULL) {
   }
   inds = stan_fit_summary |>
     filter(str_detect(variable, paste(search_vect,collapse = '|'))) |>
-    arrange(model_type) |>
+    #arrange(model_type) |>
     mutate(var_type = sub("\\[\\b.*",'',variable),
-           subjID = as.numeric(str_extract(variable, "\\d+"))) #|>
-  #select(-variable)
+           subjID = as.numeric(str_extract(variable, "\\d+")))
+
+  #arrange by model type if many models
+  if (many_models) inds = inds |> arrange(model_type)
 
   #add simulation number
   sim_num = 1:(nrow(inds)/(max(inds$subjID)*length(unique(inds$var_type))))

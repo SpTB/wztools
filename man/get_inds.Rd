@@ -4,7 +4,13 @@
 \alias{get_inds}
 \title{Filters cmdstan fit summary dataframe for mu values and adds fit diagnostic columns (add_cov_stats_ind())}
 \usage{
-get_inds(stan_fit_summary, ind_pars, model_num, param_list = NULL)
+get_inds(
+  stan_fit_summary,
+  ind_pars,
+  model_num,
+  param_list = NULL,
+  many_models = F
+)
 }
 \arguments{
 \item{stan_fit_summary}{cmdstan fit summary dataframe}
