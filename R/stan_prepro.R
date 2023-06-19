@@ -1,5 +1,13 @@
 ##ALL FUNCTIONS THAT INTERACT WITH STAN OR STAN-DERIVED OBJECTS
 
+#' Compiles a stan model (wrapper for cmdstanr::cmdstanmodel())
+#'
+#' @param model_file
+#'
+#' @return
+#' @export
+#'
+#' @examples
 compile_model <- function(model_file) {
   cmdstan_model(model_file)
   return (model_file)
@@ -159,5 +167,33 @@ make_stan_list <- function(dat, model_struct_list=NULL, fixed_pars=NULL, var_nam
   return (stan_data)
 }
 
+
+
+#' Creates a list of fixed parameters
+#'
+#' @description Outputs a list of all the model parameters with 'fix_' prefix, specifying which parameters are Fixed. By default, -1 indicates non-fixed, while all other values specify the fixed value. Parameter names taken from 'paramater_list' (mu_list or range_list can be used). Fixed vals taken from 'fixed list'.
+#' @param parameter_list a list containing all parameter names (often range_list or mu_list can be used)
+#' @param fix_list a list contatining only fixed parameter names and values, e.g. parX = 4
+#' @param non_fixed_number_code -1 by default (needs to be numeric for STAN)
+#'
+#' @return
+#' @export
+#'
+#' @examples
+make_fixed_pars_list = function(parameter_list, fix_list, non_fixed_number_code=-1) {
+  par_names = gsub('mu_', '',names(parameter_list))
+  #substr(names(parameter_list), 4, nchar(names(parameter_list)))
+
+  out=list()
+  for (nam in par_names) {
+    fix_nam = paste0('fix_', nam)
+    if (nam %in% names(fix_list)) {
+      out[[fix_nam]] = fix_list[[nam]]
+    } else {
+      out[[fix_nam]] = non_fixed_number_code
+    }
+  }
+  return(out)
+}
 
 

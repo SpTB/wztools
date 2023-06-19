@@ -113,3 +113,56 @@ get_inds <- function(stan_fit_summary, ind_pars, model_num, param_list=NULL, man
   out = add_cov_stats_ind(ind_fit=inds, ind_pars=ind_pars, model_num=model_num)
   return(out)
 }
+
+
+
+#' Adds variables from stan_list to to stan model summary (3-D, 2-D or 1-D)
+#' @description Useful for supplying simulated model with simulated parameters and experimental vars from task skeleton
+#' @param exp_struct_list has to have 'ntrial' and 'nblock' field, specifying the number of trials per subject
+#' @param cmdstan_summary summary object
+#' @param stan_list stan list containing the variables to add
+#' @param var_names names of variables to add
+#'
+#' @return
+#' @export
+#'
+#' @examples
+add_vars_from_stan_list_to_model_output <- function(exp_struct_list, cmdstan_summary, stan_list, var_names) {
+  for (nam in var_names) {
+
+    if (length(dim(stan_list[[nam]]))==3) { #3-D var case
+      cmdstan_summary[[nam]] = as.vector(aperm(stan_list[[nam]] ,c(3,2,1)))
+    } else if (length(dim(stan_list[[nam]]))==2) { #2-D var case
+      cmdstan_summary[[nam]] = rep(as.vector(aperm(stan_list[[nam]] ,c(2,1))), each=exp_struct_list$ntrial)
+    } else if (length(dim(stan_list[[nam]]))==0) { #1-D var case
+      cmdstan_summary[[nam]] = rep(stan_list[[nam]] ,each=exp_struct_list$ntrial*exp_struct_list$nblock)
+    }
+  }
+  return (cmdstan_summary)
+}
+
+
+
+#' Adds individual parameters from task skeleton to a stan list
+#'
+#' @param dataframe task skeleton df
+#' @param mu_list
+#' @param grouping_cols
+#'
+#' @return
+#' @export
+#'
+#' @examples
+pars_to_stan <- function(dataframe, mu_list ,grouping_cols = c('subjID')) {
+  par_names = paste0(substr(names(mu_list), 4, nchar(names(mu_list))), '_true')
+
+  #remove unncecessary cols
+  dataframe = dataframe %>%
+    select_if(names(.) %in% c(par_names, grouping_cols))
+
+  dataframe = dataframe %>% group_by(subjID) %>% summarise_all(max) %>% select_if(!names(.) %in% grouping_cols)
+  #remove the 'true' part of variable name
+  names(dataframe) = gsub('_true', '', names(dataframe))#        substr(names(dataframe), 1, nchar(names(dataframe))-5)
+
+  return(as.list(dataframe))
+}
