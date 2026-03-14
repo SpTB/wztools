@@ -63,3 +63,27 @@ draw_from_beta_hypers <- function (native_mu, sigma, native_range, nsub) {
   native = scales::rescale(stats::rbeta(nsub, scaled_ab$alpha, scaled_ab$beta), from=c(0,1), to=native_range)
   return (native)
 }
+
+
+#' transforms raw (in this case beta parameters) to their native space
+#'  by calculating the mean, and scaling and shifting.
+#'
+#' @param raw_df df contining columns with alpha and beta parameters
+#' @param scale_vector 1 scale value for each native parameter
+#' @param shift_vector
+#' @param prefix string to add at the start (e.g. from 'alpha' to 'mu_alpha')
+#'
+#' @return
+#' @export
+#'
+#' @examples
+raw_to_native = function(raw_df, scale_vector, shift_vector ,prefix='') {
+  prefix_alpha = paste0(prefix ,'a_')
+  prefix_beta = paste0(prefix ,'b_')
+  alphas = raw_df %>% select(starts_with(prefix_alpha))
+  betas = raw_df %>% select(starts_with(prefix_beta))
+  means = alphas/(alphas+betas)
+  names(means) = stringr::str_remove(names(means), 'a_')
+  out = map2_dfr(means, scale_vector, `*`)
+  out = map2_dfr(out, shift_vector, `+`)
+}

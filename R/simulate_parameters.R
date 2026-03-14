@@ -56,6 +56,16 @@ sim_ind_pars <-function(mu_list, sigma_list=NULL, range_list=NULL, sigma=0.1, ra
   return (out)
 }
 
+# used in OB for counterfact sim... based on stan summary
+sim_inds<- function(stan_summary, nsub) {
+  for (i in 1:nrow(df)){
+    outi=rnorm(nsub, stan_summary$mean[i], stan_summary$sd[i])
+    if (i==1) out=data.frame(outi) else out=cbind(out, outi)
+  }
+  names(out)=substr(stan_summary$variable,4, nchar(stan_summary$variable))
+  return (out)
+}
+
 
 #' Simulate individual parameters from beta-like group-level priors (with lower and upper bounds) for multiple simulations with different parameter settings
 #'

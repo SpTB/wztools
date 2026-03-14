@@ -1,46 +1,56 @@
 #' Calculate LOOIC of a cmdstan model object
-#'
-#' @param fit either draws or a character vector which can be retrieved using targets
-#'
-#' @return
-#' @export
-#'
-#' @examples
-calc_loo <- function(fit) {
-  if (class(fit)[1] == 'character')       fit = targets::tar_read_raw(fit) #if input is a character, read it out
-  if (class(fit)[1] == 'CmdStanMCMC_CSV') { # reading chain-based csv files case
-    draws = fit$draws()
-    fit = apply(draws, c(1,3), mean) %>% as_tibble() #average across chains
-  }
-  loglik = fit %>%
-    select(contains('log_lik')) %>%
+
+#compatible with new targets, which doesn't allow for tar_ functions from inside
+calc_loo_new <- function (draws) {
+
+  if ('draws_array' %in% class(draws)) draws = apply(draws, c(1,3) ,mean) %>% as_tibble()
+  loglik = draws %>%
+    select(contains("log_lik")) %>%
     select(where(~!any(is.na(.))))
-  out = loo::loo.array(posterior::as_draws_array(loglik))
-  return(out)
-}
-#' Calculate WAIC (and llpd) of a cmdstan model object
-#'
-#' @param fit either draws or a character vector which can be retrieved using targets
-#'
-#' @return
-#' @export
-#'
-#' @examples
-calc_waic<-function(fit) {
-  if (class(fit)[1] == 'character') fit = targets::tar_read_raw(fit) #if input is a character, read it out
-  if (class(fit)[1] == 'CmdStanMCMC_CSV') { # reading chain-based csv files case
-    draws = fit$draws()
-    fit = apply(draws, c(1,3), mean) %>% as_tibble() #average across chains
-  }
-  loglik = fit %>%
-    select(contains('log_lik')) %>%
-    select(where(~!any(is.na(.))))
-  out = LaplacesDemon::WAIC(t(loglik))
+  out = list(loo::loo.array(posterior::as_draws_array(loglik)))
   return(out)
 }
 
+calc_waic_new = function(draws, model_str=NULL) {
 
+  if ('draws_array' %in% class(draws)) draws = apply(draws, c(1,3) ,mean) %>% as_tibble()
+  loglik = draws %>%
+    select(contains('log_lik')) %>%
+    select(where(~!any(is.na(.))))
+  out = as.data.frame(LaplacesDemon::WAIC(t(loglik)))
 
+  if (!is.null(model_str)) out$model = model_str
+  return(out)
+}
+
+# transforms a list of loo objects into a tibble
+loos_to_df_new <- function(loo_list) {
+  for (i in 1:length(loo_list)) {
+    temp = loo_list[[i]][[1]]$estimates %>%
+      as.data.frame() %>%
+      rownames_to_column() %>%
+      rename(metric=rowname) %>%
+      mutate(model = rep(names(loo_list)[i], 3)) %>%
+      pivot_wider(names_from = metric, values_from=c(Estimate, SE))
+    if (i==1) out = temp else out = bind_rows(temp, out)
+  }
+  out  = out %>% arrange(Estimate_looic)
+  return(out)
+}
+
+waic_to_df_new <- function(waic_list) {
+  for (i in 1:length(waic_list)) {
+    temp = waic_list[[i]][[1]]$estimates %>%
+      as.data.frame() %>%
+      rownames_to_column() %>%
+      rename(metric=rowname) %>%
+      mutate(model = rep(names(loo_list)[i], 3)) %>%
+      pivot_wider(names_from = metric, values_from=c(Estimate, SE))
+    if (i==1) out = temp else out = bind_rows(temp, out)
+  }
+  out  = out %>% arrange(Estimate_looic)
+  return(out)
+}
 
 
 #' Extract LOOIC values from all models in your targets folder ('draws' objects)
@@ -49,7 +59,7 @@ calc_waic<-function(fit) {
 #' @param model_str Specifies model string
 #'
 #' @return a list of loo scores
-#' @export
+#'
 #'
 #' @examples
 extract_loos <- function(model_dir ='_targets/objects/', model_str=NULL) {
@@ -64,7 +74,7 @@ extract_loos <- function(model_dir ='_targets/objects/', model_str=NULL) {
 #' @param model_str Specifies model string
 #'
 #' @return a list of WAIC scores
-#' @export
+#'
 #'
 #' @examples
 extract_waics <- function(model_dir ='_targets/objects/', model_str=NULL) {
@@ -122,3 +132,49 @@ model_comp_table <- function(loo_list=NULL, waic_list=NULL, model_str=NULL, rele
 
   return(out_table)
 }
+
+
+
+
+####LEGACY FUNCS (deprecated)
+
+#'
+#' @param fit either draws or a character vector which can be retrieved using targets
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calc_loo <- function(fit) {
+  if (class(fit)[1] == 'character')       fit = targets::tar_read_raw(fit) #if input is a character, read it out
+  if (class(fit)[1] == 'CmdStanMCMC_CSV') { # reading chain-based csv files case
+    draws = fit$draws()
+    fit = apply(draws, c(1,3), mean) %>% as_tibble() #average across chains
+  }
+  loglik = fit %>%
+    select(contains('log_lik')) %>%
+    select(where(~!any(is.na(.))))
+  out = loo::loo.array(posterior::as_draws_array(loglik))
+  return(out)
+}
+#' Calculate WAIC (and llpd) of a cmdstan model object
+#'
+#' @param fit either draws or a character vector which can be retrieved using targets
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calc_waic<-function(fit) {
+  if (class(fit)[1] == 'character') fit = targets::tar_read_raw(fit) #if input is a character, read it out
+  if (class(fit)[1] == 'CmdStanMCMC_CSV') { # reading chain-based csv files case
+    draws = fit$draws()
+    fit = apply(draws, c(1,3), mean) %>% as_tibble() #average across chains
+  }
+  loglik = fit %>%
+    select(contains('log_lik')) %>%
+    select(where(~!any(is.na(.))))
+  out = LaplacesDemon::WAIC(t(loglik))
+  return(out)
+}
+

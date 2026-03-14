@@ -126,7 +126,8 @@ sim_raw_pars_from_ab <- function(settings_list, alpha_df, beta_df, out_pars = 'b
 #' @export
 #'
 #' @examples
-sim_raw_inds_from_ab <-function(mus_df, out_pars = 'beta', nsim, nsubj, starting_string='',seed=NULL) {
+#'
+sim_raw_inds_from_ab <-function(mus_df, out_pars = 'beta', nsim, nsubj, suffix='', starting_string='',seed=NULL) {
   if (!is.null(seed)) set.seed(seed)
   #column starting prefixes:
   alpha_prefix = paste0(starting_string, 'a_')
@@ -142,7 +143,7 @@ sim_raw_inds_from_ab <-function(mus_df, out_pars = 'beta', nsim, nsubj, starting
       parx = rbeta(nsubj, pull(alpha_df[sim,par]), pull(beta_df[sim,par]))
       if (par==1) simx = parx else simx = bind_cols(simx, parx)
     }
-    names(simx) = par_names
+    names(simx) = paste0(par_names, suffix)
     simx$sim_num = sim
     simx$subjID = 1:nsubj
     if (sim==1) out=simx else out = bind_rows(out, simx)
